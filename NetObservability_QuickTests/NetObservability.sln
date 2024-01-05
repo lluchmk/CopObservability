@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.8.34330.188
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NetObservability", "NetObservability.csproj", "{82B981BD-1543-42AC-BCF2-2154F5E4999B}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{82B981BD-1543-42AC-BCF2-2154F5E4999B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{82B981BD-1543-42AC-BCF2-2154F5E4999B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{82B981BD-1543-42AC-BCF2-2154F5E4999B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{82B981BD-1543-42AC-BCF2-2154F5E4999B}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {29837FB3-52C3-488F-A4A8-B0A9A5443D4F}
+	EndGlobalSection
+EndGlobal

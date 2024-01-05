@@ -1,0 +1,43 @@
+services:
+  # Logs
+  seq:
+    image: datalust/seq:2023.4
+    ports:
+      - 80:80     # UI and API
+      - 5341:5341 # Ingestion
+    volumes:
+      - seq-data:/data
+    environment:
+      - ACCEPT_EULA=Y
+
+  # Metrics
+  prometheus:
+    image: prom/prometheus:v2.48.1
+    ports:
+      - 9090:9090
+    volumes:
+      - prometheus-data:/prometheus
+      - ./Infrastructure/Prometheus/prometheus.local.yml:/etc/prometheus/prometheus.yml
+
+  grafana:
+    image: grafana/grafana:10.2.3
+    ports:
+      - 3000:3000
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./Infrastructure/Grafana/datasource:/etc/grafana/provisioning/datasources
+      # TODO: Set configuration mappigs
+
+  # Traces
+  jaeger:
+    image: jaegertracing/all-in-one:1.52
+    ports:
+      - 4318:4318 # Accept OTLP over HTTP
+      - 5778:5778 # Serve configs
+      - 16686:16686 # Serve frontend
+
+
+volumes:
+  seq-data:
+  prometheus-data:
+  grafana-data:

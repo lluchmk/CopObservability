@@ -1,0 +1,29 @@
+services:
+  database:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    user: root
+    ports:
+      - 1433:1433
+    volumes:
+      - database-data:/var/opt/mssql/data
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=<YourStrong@Passw0rd>
+
+  rabbitmq:
+    image: rabbitmq:3.12.11-management
+    ports:
+      - 15672:15672 # Management console
+      - 5672:5672   # AMQP
+      - 15692:15692 # Prometheus metrics
+
+  azurite:
+    image: mcr.microsoft.com/azure-storage/azurite:3.29.0
+    ports:
+      - 10000:10000 # Blob service
+    volumes:
+      - azurite-blobs:/data
+
+volumes:
+  database-data:
+  azurite-blobs:

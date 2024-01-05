@@ -1,0 +1,54 @@
+services:
+  documents-api:
+    build:
+      context: .
+      dockerfile: DocumentsAPI/Dockerfile
+    ports:
+      - 5000:8080
+    environment:
+      Serilog__WriteTo__1__Args__ServerUrl: "http://serilog:5341"
+      ConnectionStrings__Database: "Server=database,1433;Database=master;User Id=SA;Password=<YourStrong@Passw0rd>;TrustServerCertificate=True"
+      MessageQueue__HostName: "rabbitmq"
+
+  catalog-api:
+    build:
+      context: .
+      dockerfile: CatalogAPI/Dockerfile
+    ports:
+      - 5010:8080
+    environment:
+      Serilog__WriteTo__1__Args__ServerUrl: "http://serilog:5341"
+      ConnectionStrings__Database: "Server=database,1433;Database=master;User Id=SA;Password=<YourStrong@Passw0rd>;TrustServerCertificate=True"
+
+  customers-api:
+    build:
+      context: .
+      dockerfile: CustomersAPI/Dockerfile
+    ports:
+      - 5020:8080
+    environment:
+      Serilog__WriteTo__1__Args__ServerUrl: "http://serilog:5341"
+      ConnectionStrings__Database: "Server=database,1433;Database=master;User Id=SA;Password=<YourStrong@Passw0rd>;TrustServerCertificate=True"
+
+  orders-api:
+    build:
+      context: .
+      dockerfile: OrdersAPI/Dockerfile
+    ports:
+      - 5030:8080
+    environment:
+      Serilog__WriteTo__1__Args__ServerUrl: "http://serilog:5341"
+      ConnectionStrings__Database: "Server=database,1433;Database=master;User Id=SA;Password=<YourStrong@Passw0rd>;TrustServerCertificate=True"
+
+  documents-generator:
+    build:
+      context: .
+      dockerfile: DocumentsGenerator/Dockerfile
+    environment:
+      Serilog__WriteTo__1__Args__ServerUrl: "http://serilog:5341"
+      ConnectionStrings__Database: "Server=database,1433;Database=master;User Id=SA;Password=<YourStrong@Passw0rd>;TrustServerCertificate=True"
+      CustomersApiUrl: "http://customers-api:5020"
+      CatalogApiUrl: "http://catalog-api:5010"
+      OrdersApiUrl: "http://orders-api:5030"
+      MessageQueue__HostName: "rabbitmq"
+      BlobStorageConnectionString: "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://azurite:10000/devstoreaccount1;"

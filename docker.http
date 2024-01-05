@@ -1,0 +1,13 @@
+@hostname=localhost
+@port=5000
+@host={{hostname}}:{{port}}
+
+# Create document
+POST http://{{host}}
+Content-Type: application/json
+
+{
+	"Customers": ["Kevin"]
+}
+
+###
