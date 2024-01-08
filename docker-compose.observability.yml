@@ -1,23 +1,14 @@
 services:
-  # Logs
-  seq:
-    image: datalust/seq:2023.4
-    ports:
-      - 80:80     # UI and API
-      - 5341:5341 # Ingestion
-    volumes:
-      - seq-data:/data
-    environment:
-      - ACCEPT_EULA=Y
-
-  # Metrics
+  
   prometheus:
     image: prom/prometheus:v2.48.1
     ports:
       - 9090:9090
     volumes:
       - prometheus-data:/prometheus
-      - ./Infrastructure/Prometheus/prometheus.local.yml:/etc/prometheus/prometheus.yml
+      - ./Infrastructure/Prometheus/prometheus.local.yml:/prometheus/prometheus.yml
+    command:
+      - "--web.enable-remote-write-receiver" # Enable OtelCollector to push metrics
 
   grafana:
     image: grafana/grafana:10.2.3
@@ -25,14 +16,39 @@ services:
       - 3000:3000
     volumes:
       - grafana-data:/var/lib/grafana
-      - ./Infrastructure/Grafana/datasource:/etc/grafana/provisioning/datasources
-      # TODO: Set configuration mappigs
+      - ./Infrastructure/Grafana/datasources:/etc/grafana/provisioning/datasources
+      - ./Infrastructure/Grafana/dashboards.yml:/etc/grafana/provisioning/dashboards/main.yaml
+      - ./Infrastructure/Grafana/dashboards:/etc/grafana/dashboards
+    depends_on:
+      - prometheus
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=grafana
 
-  # Traces
+  loki:
+    image: grafana/loki
+    user: root
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/loki-config.yaml
+    volumes:
+      - ./Infrastructure/Grafana/loki-config.yaml:/etc/loki/loki-config.yaml
+      - loki-data:/tmp/loki/
+
+  otel-collector:
+    # using contrib so it includes the loki exporter and service graph exporter
+    image: otel/opentelemetry-collector-contrib
+    command: --config=/etc/otel-collector-config.yaml
+    volumes:
+      - ./Infrastructure/OtelCollector/otel-collector-config.yaml:/etc/otel-collector-config.yaml:ro
+    ports:
+      #- "8889:8889"   # Prometheus exporter metrics
+      - "4317:4317"   # OTLP gRPC receiver
+
   jaeger:
     image: jaegertracing/all-in-one:1.52
     ports:
-      - 4318:4318 # Accept OTLP over HTTP
+      - 4387:4317 # Accept OTLP over GRPC
       - 5778:5778 # Serve configs
       - 16686:16686 # Serve frontend
 
@@ -41,3 +57,4 @@ volumes:
   seq-data:
   prometheus-data:
   grafana-data:
+  loki-data:

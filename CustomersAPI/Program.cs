@@ -1,17 +1,16 @@
 using CustomersAPI;
 using Microsoft.EntityFrameworkCore;
 using Observability;
-using Serilog;
+using OpenTelemetry.Metrics;
 
 var builder = WebApplication.CreateBuilder(args);
-
-builder.Host.UseSerilog((context, configuration) =>
+builder.AddObservability(configureMetrics: builder =>
 {
-    configuration.ReadFrom.Configuration(context.Configuration);
+    builder
+        .AddAspNetCoreInstrumentation()
+        .AddMeter("Microsoft.AspNetCore.Hosting")
+        .AddMeter("Microsoft.AspNetCore.Server.Kestrel");
 });
-
-var serviceName = builder.Environment.ApplicationName;
-builder.Services.AddObservability(serviceName, builder.Configuration);
 
 builder.Services.AddDbContext<CustomersContext>(opt =>
 {
@@ -19,7 +18,6 @@ builder.Services.AddDbContext<CustomersContext>(opt =>
 });
 
 var app = builder.Build();
-app.UseSerilogRequestLogging();
 
 using (var scope = app.Services.CreateScope())
 {
@@ -27,7 +25,8 @@ using (var scope = app.Services.CreateScope())
     await dbContext.Database.MigrateAsync();
 }
 
-app.MapGet("/customers", async (CustomersContext dbContext, ILogger<Program> logger) => {
+app.MapGet("/customers", async (CustomersContext dbContext, ILogger<Program> logger) =>
+{
     logger.AllCustomersRequested();
     return await dbContext.Customers.ToListAsync();
 });

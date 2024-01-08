@@ -1,17 +1,16 @@
 using CatalogAPI;
 using Microsoft.EntityFrameworkCore;
 using Observability;
-using Serilog;
+using OpenTelemetry.Metrics;
 
 var builder = WebApplication.CreateBuilder(args);
-
-builder.Host.UseSerilog((context, configuration) =>
+builder.AddObservability(configureMetrics: builder =>
 {
-    configuration.ReadFrom.Configuration(context.Configuration);
+    builder
+        .AddAspNetCoreInstrumentation()
+        .AddMeter("Microsoft.AspNetCore.Hosting")
+        .AddMeter("Microsoft.AspNetCore.Server.Kestrel");
 });
-
-var serviceName = builder.Environment.ApplicationName;
-builder.Services.AddObservability(serviceName, builder.Configuration);
 
 builder.Services.AddDbContext<ProductsContext>(opt =>
 {
@@ -19,7 +18,6 @@ builder.Services.AddDbContext<ProductsContext>(opt =>
 });
 
 var app = builder.Build();
-app.UseSerilogRequestLogging();
 
 using (var scope = app.Services.CreateScope())
 {
@@ -27,7 +25,8 @@ using (var scope = app.Services.CreateScope())
     await dbContext.Database.MigrateAsync();
 }
 
-app.MapGet("/products", async (ProductsContext dbContext, ILogger<Program> logger) => {
+app.MapGet("/products", async (ProductsContext dbContext, ILogger<Program> logger) =>
+{
     logger.AllProductsRequested();
     return await dbContext.Products.ToListAsync();
 });

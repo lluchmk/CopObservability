@@ -1,32 +1,28 @@
 using CustomersAPI;
 using DocumentsAPI;
+using Messaging;
 using Observability;
-using RabbitMQ.Client;
-using Serilog;
-using System.Text;
-using System.Text.Json;
+using OpenTelemetry.Metrics;
 
 var builder = WebApplication.CreateBuilder(args);
-
-builder.Host.UseSerilog((context, configuration) =>
+builder.AddObservability(configureMetrics: builder =>
 {
-    configuration.ReadFrom.Configuration(context.Configuration);
+    builder
+        .AddAspNetCoreInstrumentation()
+        .AddMeter("Microsoft.AspNetCore.Hosting")
+        .AddMeter("Microsoft.AspNetCore.Server.Kestrel");
+},
+configureTracing: builder =>
+{
+    builder.AddSource(nameof(MessageSender));
 });
 
-var serviceName = builder.Environment.ApplicationName;
-builder.Services.AddObservability(serviceName, builder.Configuration);
+builder.Services.AddOptions<RabbitMqSettings>()
+    .BindConfiguration(nameof(RabbitMqSettings));
 
-builder.Services.AddScoped(sp =>
-{
-    var factory = new ConnectionFactory { HostName = builder.Configuration["MessageQueue:HostName"] };
-    var connection = factory.CreateConnection();
-    var channel = connection.CreateModel();
-    channel.QueueDeclare(builder.Configuration["MessageQueue:QueueName"], false, false);
-    return channel;
-});
+builder.Services.AddSingleton<MessageSender>();
 
 var app = builder.Build();
-app.UseSerilogRequestLogging();
 
 app.MapPost("/", CreateDocument);
 
@@ -34,16 +30,14 @@ app.MapPrometheusScrapingEndpoint();
 
 app.Run();
 
-
-Guid CreateDocument(IModel channel, ILogger<Program> logger, CreateDocumentRequest request)
+Guid CreateDocument(MessageSender messageSender, ILogger<Program> logger, CreateDocumentRequest request)
 {
     var documentId = Guid.NewGuid();
     logger.RequestedDocument(request, documentId);
 
     var message = new CreateDocumentMessage(request.Customers, request.Products, request.Errors, documentId);
-    var body = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(message));
+    messageSender.SendMessage(message);
 
-    channel.BasicPublish(string.Empty, builder.Configuration["MessageQueue:QueueName"], null, body);
-    return Guid.NewGuid();
+    return documentId;
 }
 

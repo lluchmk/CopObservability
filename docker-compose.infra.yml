@@ -11,7 +11,10 @@ services:
       - MSSQL_SA_PASSWORD=<YourStrong@Passw0rd>
 
   rabbitmq:
-    image: rabbitmq:3.12.11-management
+    #image: rabbitmq:3.12.11-management # We're using cutom image to enable prometheus
+    build:
+       context: .
+       dockerfile: Infrastructure/RabbitMQ/Dockerfile
     ports:
       - 15672:15672 # Management console
       - 5672:5672   # AMQP

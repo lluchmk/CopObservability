@@ -11,3 +11,13 @@ Content-Type: application/json
 }
 
 ###
+
+POST http://{{host}}
+Content-Type: application/json
+
+{
+	"Customers": ["Francisco"],
+	"Products": ["Notebook", "Pencil"]
+}
+
+###

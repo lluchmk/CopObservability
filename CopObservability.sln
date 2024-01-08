@@ -21,6 +21,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		docker.http = docker.http
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Messaging", "Messaging\Messaging.csproj", "{AEF412E2-F8E1-444D-8924-A4EC3130D02B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -51,6 +53,10 @@ Global
 		{FFB459E9-40E4-4EE5-BF64-46718F852BE7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FFB459E9-40E4-4EE5-BF64-46718F852BE7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FFB459E9-40E4-4EE5-BF64-46718F852BE7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AEF412E2-F8E1-444D-8924-A4EC3130D02B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AEF412E2-F8E1-444D-8924-A4EC3130D02B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AEF412E2-F8E1-444D-8924-A4EC3130D02B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AEF412E2-F8E1-444D-8924-A4EC3130D02B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

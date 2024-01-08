@@ -1,17 +1,16 @@
 using Microsoft.EntityFrameworkCore;
 using Observability;
+using OpenTelemetry.Metrics;
 using OrdersAPI;
-using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
-
-builder.Host.UseSerilog((context, configuration) =>
+builder.AddObservability(configureMetrics: builder =>
 {
-    configuration.ReadFrom.Configuration(context.Configuration);
+    builder
+        .AddAspNetCoreInstrumentation()
+        .AddMeter("Microsoft.AspNetCore.Hosting")
+        .AddMeter("Microsoft.AspNetCore.Server.Kestrel");
 });
-
-var serviceName = builder.Environment.ApplicationName;
-builder.Services.AddObservability(serviceName, builder.Configuration);
 
 builder.Services.AddDbContext<OrdersContext>(opt =>
 {
@@ -19,7 +18,6 @@ builder.Services.AddDbContext<OrdersContext>(opt =>
 });
 
 var app = builder.Build();
-app.UseSerilogRequestLogging();
 
 using (var scope = app.Services.CreateScope())
 {

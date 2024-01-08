@@ -1,62 +1,28 @@
 using Azure.Storage.Blobs;
-using RabbitMQ.Client;
-using RabbitMQ.Client.Events;
-using System.Text;
-using System.Text.Json;
+using Messaging;
 
 namespace DocumentsGenerator;
 
 public class Worker : BackgroundService
 {
     private readonly ILogger<Worker> _logger;
+    private readonly RequestsMetrics _requestMetrics;
     private readonly IServiceProvider _serviceProvider;
-    private readonly IConfiguration _configuration;
+    private readonly MessageReceiver _messageReceiver;
 
-    private IConnection? _connection;
-    private IModel? _channel;
-
-    public Worker(ILogger<Worker> logger, IServiceProvider serviceProvider, IConfiguration configuration)
+    public Worker(ILogger<Worker> logger, RequestsMetrics requestsMetrics, IServiceProvider serviceProvider, MessageReceiver messageReceiver)
     {
         _logger = logger;
+        _requestMetrics = requestsMetrics;
         _serviceProvider = serviceProvider;
-        _configuration = configuration;
+        _messageReceiver = messageReceiver;
     }
 
-    public override Task StartAsync(CancellationToken cancellationToken)
-    {
-        var factory = new ConnectionFactory
-        {
-            HostName = _configuration["MessageQueue:HostName"],
-            DispatchConsumersAsync = true,
-        };
-        _connection = factory.CreateConnection();
-        _channel = _connection.CreateModel();
-        _channel.QueueDeclare(_configuration["MessageQueue:QueueName"], false, false);
-
-        return base.StartAsync(cancellationToken);
-    }
-
-    
     protected override Task ExecuteAsync(CancellationToken stoppingToken)
     {
         stoppingToken.ThrowIfCancellationRequested();
 
-        var consumer = new AsyncEventingBasicConsumer(_channel);
-        consumer.Received += async (model, ea) =>
-        {
-            var message = Encoding.UTF8.GetString(ea.Body.ToArray());
-            var request = JsonSerializer.Deserialize<CreateDocumentMessage>(message);
-            if (request is null)
-            {
-                _logger.InvalidMessageReceived(message);
-                return;
-            }
-
-            _logger.MessageReceived(request);
-            await ProcessMessage(request);
-        };
-
-        _channel.BasicConsume(_configuration["MessageQueue:QueueName"], true, consumer);
+        _messageReceiver.StartConsumer<CreateDocumentMessage>(ProcessMessage);
 
         return Task.CompletedTask;
     }
@@ -77,19 +43,17 @@ public class Worker : BackgroundService
         {
             try
             {
-                using (var fileWriter = new StreamWriter(new FileStream(filePath, FileMode.Create, FileAccess.Write)))
+                _logger.CreatingFile(filePath);
+                using var fileWriter = new StreamWriter(new FileStream(filePath, FileMode.Create, FileAccess.Write));
+
+                if (request.Customers?.Any() ?? false)
                 {
-                    _logger.CreatingFile(filePath);
+                    await CreateCustomersResume(request.Customers, scope.ServiceProvider, fileWriter);
+                }
 
-                    if (request.Customers?.Any() ?? false)
-                    {
-                        await CreateCustomersResume(request.Customers, scope.ServiceProvider, fileWriter);
-                    }
-
-                    if (request.Products?.Any() ?? false)
-                    {
-                        await CreateProductsResume(request.Products, scope.ServiceProvider, fileWriter);
-                    }
+                if (request.Products?.Any() ?? false)
+                {
+                    await CreateProductsResume(request.Products, scope.ServiceProvider, fileWriter);
                 }
             }
             catch (Exception ex)
@@ -141,6 +105,8 @@ public class Worker : BackgroundService
                 continue;
             }
 
+            _requestMetrics.IncreaseCustomersMeter(customerData.Name);
+
             var customerOrders = await ordersClient.GetOrdersByCustomer(customerData.Id);
             if (customerOrders is null || !customerOrders.Any())
             {
@@ -180,6 +146,8 @@ public class Worker : BackgroundService
                 continue;
             }
 
+            _requestMetrics.IncreaseProductsMeter(productData.Name);
+
             var productOrders = await ordersClient.GetOrdersByProduct(productData.Id);
             if (productOrders is null || !productOrders.Any())
             {
@@ -199,11 +167,5 @@ public class Worker : BackgroundService
                 fileWriter.WriteLine($"{customer.Name};{totalAmount};");
             }
         }
-    }
-
-    public override async Task StopAsync(CancellationToken cancellationToken)
-    {
-        await base.StopAsync(cancellationToken);
-        _connection?.Close();
     }
 }
