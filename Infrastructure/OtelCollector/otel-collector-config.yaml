@@ -2,6 +2,7 @@ receivers:
   otlp:
     protocols:
       grpc:
+      http:
 
 exporters:
   loki:
@@ -11,6 +12,11 @@ exporters:
       
   prometheusremotewrite:
     endpoint: http://prometheus:9090/api/v1/write
+  
+  otlphttp:
+    endpoint: "http://seq:5341/ingest/otlp"
+    tls:
+      insecure: true
 
   otlp/jaeger:
     endpoint: "http://jaeger:4317"
@@ -24,7 +30,7 @@ service:
       exporters: [otlp/jaeger]
     logs:
       receivers: [otlp]
-      exporters: [loki]
+      exporters: [loki, otlphttp]
     metrics:
       receivers: [otlp]
       exporters: [prometheusremotewrite]

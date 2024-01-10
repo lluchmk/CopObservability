@@ -52,9 +52,21 @@ services:
       - 5778 # Serve configs
       - 16686:16686 # Serve frontend
 
+  seq:
+    image: datalust/seq:2023.4
+    ports:
+      - 3010:80
+      - 5341:5341
+    environment:
+      - ACCEPT_EULA=Y
+      # - SEQ_FIRSTRUN_ADMINPASSWORDHASH="password"
+    volumes:
+      - seq-data:/data
+
 
 volumes:
   prometheus-data:
   grafana-data:
   loki-data:
-  
+  seq-data:
+    
