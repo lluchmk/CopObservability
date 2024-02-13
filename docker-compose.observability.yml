@@ -69,4 +69,4 @@ volumes:
   grafana-data:
   loki-data:
   seq-data:
-    
+  
