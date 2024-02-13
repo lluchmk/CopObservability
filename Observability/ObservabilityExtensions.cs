@@ -78,7 +78,7 @@ public static class ObservabilityExtensions
                 })
                 .AddOtlpExporter(otlpOptions =>
                 {
-                    otlpOptions.Endpoint = openTelemetrySettings!.JaegerEndpoint;
+                    otlpOptions.Endpoint = openTelemetrySettings!.Endpoint;
                 })
                 .AddConsoleExporter();
 

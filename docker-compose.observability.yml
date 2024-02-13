@@ -29,7 +29,7 @@ services:
     image: grafana/loki
     user: root
     ports:
-      - "3100:3100"
+      - 3100:3100
     command: -config.file=/etc/loki/loki-config.yaml
     volumes:
       - ./Infrastructure/Grafana/loki-config.yaml:/etc/loki/loki-config.yaml
@@ -42,19 +42,18 @@ services:
     volumes:
       - ./Infrastructure/OtelCollector/otel-collector-config.yaml:/etc/otel-collector-config.yaml:ro
     ports:
-      #- "8889:8889"   # Prometheus exporter metrics
-      - "4317:4317"   # OTLP gRPC receiver
+      #- 8889:8889   # Prometheus exporter metrics
+      - 4317:4317   # OTLP gRPC receiver
 
   jaeger:
     image: jaegertracing/all-in-one:1.52
     ports:
-      - 4387:4317 # Accept OTLP over GRPC
-      - 5778:5778 # Serve configs
+      - 4317 # Accept OTLP over GRPC
+      - 5778 # Serve configs
       - 16686:16686 # Serve frontend
 
 
 volumes:
-  seq-data:
   prometheus-data:
   grafana-data:
   loki-data:
