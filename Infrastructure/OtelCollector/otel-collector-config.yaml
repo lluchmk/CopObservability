@@ -21,7 +21,7 @@ service:
   pipelines:
     traces:
       receivers: [otlp]
-      exporters: [otlp/jaeger, debug]
+      exporters: [otlp/jaeger]
     logs:
       receivers: [otlp]
       exporters: [loki]
