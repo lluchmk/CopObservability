@@ -7,10 +7,6 @@ using OpenTelemetry.Metrics;
 
 var builder = Host.CreateApplicationBuilder(args);
 
-//var documentsGeneratorMeter = new Meter("DocumentsGenerator");
-//var customersCounter = documentsGeneratorMeter.CreateCounter<int>("documents.customers", description: "Counts the amount of times reports are generated for a customer");
-//var productsCounter = documentsGeneratorMeter.CreateCounter<int>("documents.products", description: "Counts the amount of times reports are generated for a product");
-
 var openTelemetrySettings = builder.Configuration
            .GetSection(nameof(OpenTelemetrySettings))
            .Get<OpenTelemetrySettings>();

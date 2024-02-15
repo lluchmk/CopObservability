@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Options;
 using OpenTelemetry;
 using OpenTelemetry.Context.Propagation;
+using OpenTelemetry.Trace;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Diagnostics;
@@ -56,7 +57,7 @@ public class MessageReceiver : IDisposable
 
         // Start an activity with a name following the semantic convention of the OpenTelemetry messaging specification.
         // https://github.com/open-telemetry/semantic-conventions/blob/main/docs/messaging/messaging-spans.md#span-name
-        var activityName = $"{_rabbitMqSettings.QueueName} receive";
+        var activityName = $"{_rabbitMqSettings.QueueName} message receive";
         using var activity = ActivitySource.StartActivity(activityName, ActivityKind.Consumer, parentContext.ActivityContext);
 
         try
@@ -76,6 +77,9 @@ public class MessageReceiver : IDisposable
         catch (Exception ex)
         {
             _logger.ProcessMessageException(ex);
+            // Record the exception into the trace and mark it as failed
+            activity?.RecordException(ex);
+            activity?.SetStatus(Status.Error.WithDescription(ex.Message));
         }
     }
 

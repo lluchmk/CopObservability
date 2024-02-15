@@ -2,6 +2,7 @@ using CustomersAPI;
 using Microsoft.EntityFrameworkCore;
 using Observability;
 using OpenTelemetry.Metrics;
+using OpenTelemetry.Trace;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.AddObservability(configureMetrics: builder =>
@@ -18,6 +19,8 @@ builder.Services.AddDbContext<CustomersContext>(opt =>
 });
 
 var app = builder.Build();
+
+app.UseTracingExceptionHandler();
 
 using (var scope = app.Services.CreateScope())
 {
@@ -46,6 +49,11 @@ app.MapGet("/customers/{id:guid}", async (CustomersContext dbContext, ILogger<Pr
 
 app.MapGet("/customers/{name}", async (CustomersContext dbContext, ILogger<Program> logger, string name) =>
 {
+    if ("error".Equals(name, StringComparison.OrdinalIgnoreCase))
+    {
+        throw new Exception("An error has occurred requesting the customer. How unexpected.");
+    }
+
     var customer = await dbContext.Customers.FirstOrDefaultAsync(c => c.Name.Contains(name));
     if (customer is null)
     {

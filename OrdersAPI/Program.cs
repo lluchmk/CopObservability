@@ -19,6 +19,8 @@ builder.Services.AddDbContext<OrdersContext>(opt =>
 
 var app = builder.Build();
 
+app.UseTracingExceptionHandler();
+
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<OrdersContext>();
@@ -61,6 +63,5 @@ app.MapGet("/orders/products/{productId:guid}", async (OrdersContext dbContext, 
 });
 
 app.MapPrometheusScrapingEndpoint();
-
 
 app.Run();

@@ -39,7 +39,7 @@ public class MessageSender : IDisposable
         {
             // Start an activity with a name following the semantic convention of the OpenTelemetry messaging specification.
             // https://github.com/open-telemetry/semantic-conventions/blob/main/docs/messaging/messaging-spans.md#span-name
-            var activityName = $"{_rabbitMqSettings.QueueName} send";
+            var activityName = $"{_rabbitMqSettings.QueueName} message send";
             using var activity = ActivitySource.StartActivity(activityName, ActivityKind.Producer);
 
             var props = _channel.CreateBasicProperties();

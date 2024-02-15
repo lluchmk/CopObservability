@@ -6,4 +6,12 @@ public record Product(Guid Id, string Name, string Description);
 
 public record Customer(Guid Id, string Name);
 
-public record CreateDocumentMessage(IEnumerable<string> Customers, IEnumerable<string>? Products, IEnumerable<string> Errors, Guid documentId);
+public record CreateDocumentMessage(IEnumerable<string> Customers, IEnumerable<string>? Products, IEnumerable<string> Errors, Guid DocumentId);
+
+public enum DocumentStatus
+{
+    Requested,
+    Processing,
+    Completed,
+    Failed,
+}

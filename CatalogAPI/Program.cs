@@ -2,6 +2,7 @@ using CatalogAPI;
 using Microsoft.EntityFrameworkCore;
 using Observability;
 using OpenTelemetry.Metrics;
+using OpenTelemetry.Trace;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.AddObservability(configureMetrics: builder =>
@@ -18,6 +19,8 @@ builder.Services.AddDbContext<ProductsContext>(opt =>
 });
 
 var app = builder.Build();
+
+app.UseTracingExceptionHandler();
 
 using (var scope = app.Services.CreateScope())
 {
@@ -46,6 +49,11 @@ app.MapGet("/products/{id:guid}", async (ProductsContext dbContext, ILogger<Prog
 
 app.MapGet("/products/{name}", async (ProductsContext dbContext, ILogger<Program> logger, string name) =>
 {
+    if ("error".Equals(name, StringComparison.OrdinalIgnoreCase))
+    {
+        throw new Exception("An error has occurred requesting the product. How unexpected.");
+    }
+
     var product = await dbContext.Products.FirstOrDefaultAsync(c => c.Name.Contains(name));
     if (product is null)
     {

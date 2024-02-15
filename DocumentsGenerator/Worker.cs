@@ -1,5 +1,7 @@
 using Azure.Storage.Blobs;
 using Messaging;
+using Microsoft.Data.SqlClient;
+using System.Data.SqlTypes;
 
 namespace DocumentsGenerator;
 
@@ -29,8 +31,27 @@ public class Worker : BackgroundService
 
     private async Task ProcessMessage(CreateDocumentMessage request)
     {
+        try
+        {
+            await ProcessDocument(request);
+        }
+        catch
+        {
+            await UpdateDocumentStatus(request.DocumentId, DocumentStatus.Failed);
+            throw;
+        }
+    }
+
+    private async Task ProcessDocument(CreateDocumentMessage request)
+    {
+        if (request.Errors?.Any(e => "ProcessStart".Equals(e, StringComparison.OrdinalIgnoreCase)) ?? false)
+        {
+            throw new Exception("Error at the start of message processing.");
+        }
+
         if ((!request.Customers?.Any() ?? false) && (!request.Products?.Any() ?? false))
         {
+            await UpdateDocumentStatus(request.DocumentId, DocumentStatus.Completed);
             _logger.EmptyRequestReceived();
             return;
         }
@@ -38,7 +59,9 @@ public class Worker : BackgroundService
         using var scope = _serviceProvider.CreateScope();
         var timeProvider = scope.ServiceProvider.GetRequiredService<TimeProvider>();
 
-        var filePath = $"{timeProvider.GetUtcNow().ToString("yyyy-MM-dd-HH-mm-ss")}_Summary.csv";
+        await UpdateDocumentStatus(request.DocumentId, DocumentStatus.Processing);
+
+        var filePath = $"{timeProvider.GetUtcNow().ToString("yyyy-MM-dd-HH-mm-ss")}_${request.DocumentId}.csv";
         try
         {
             try
@@ -48,12 +71,12 @@ public class Worker : BackgroundService
 
                 if (request.Customers?.Any() ?? false)
                 {
-                    await CreateCustomersResume(request.Customers, scope.ServiceProvider, fileWriter);
+                    await CreateCustomersResume(request.Customers, fileWriter);
                 }
 
                 if (request.Products?.Any() ?? false)
                 {
-                    await CreateProductsResume(request.Products, scope.ServiceProvider, fileWriter);
+                    await CreateProductsResume(request.Products, fileWriter);
                 }
             }
             catch (Exception ex)
@@ -66,11 +89,18 @@ public class Worker : BackgroundService
             {
                 _logger.UploadingToBlob();
 
+                if (request.Errors?.Any(e => "ProcessUpload".Equals(e, StringComparison.OrdinalIgnoreCase)) ?? false)
+                {
+                    throw new Exception("Error when uploading the document.");
+                }
+
                 var blobServiceClient = scope.ServiceProvider.GetRequiredService<BlobServiceClient>();
                 var containerClient = blobServiceClient.GetBlobContainerClient("documents");
                 await containerClient.CreateIfNotExistsAsync();
                 var blobClient = containerClient.GetBlobClient(filePath);
                 await blobClient.UploadAsync(filePath);
+
+                await UpdateDocumentStatus(request.DocumentId, DocumentStatus.Completed, blobClient.Uri.AbsoluteUri);
             }
             catch (Exception ex)
             {
@@ -85,13 +115,18 @@ public class Worker : BackgroundService
                 File.Delete(filePath);
             }
         }
+
+        if (request.Errors?.Any(e => "ProcessEnd".Equals(e, StringComparison.OrdinalIgnoreCase)) ?? false)
+        {
+            throw new Exception("Error at the end of message processing.");
+        }
     }
 
-    private async Task CreateCustomersResume(IEnumerable<string> customers, IServiceProvider serviceProvider, StreamWriter fileWriter)
+    private async Task CreateCustomersResume(IEnumerable<string> customers, StreamWriter fileWriter)
     {
-        var ordersClient = serviceProvider.GetRequiredService<OrdersClient>();
-        var catalogClient = serviceProvider.GetRequiredService<CatalogClient>();
-        var customersClient = serviceProvider.GetRequiredService<CustomersClient>();
+        var ordersClient = _serviceProvider.GetRequiredService<OrdersClient>();
+        var catalogClient = _serviceProvider.GetRequiredService<CatalogClient>();
+        var customersClient = _serviceProvider.GetRequiredService<CustomersClient>();
 
         await fileWriter.WriteLineAsync("Customers Summary;");
         await fileWriter.WriteLineAsync(";");
@@ -128,11 +163,11 @@ public class Worker : BackgroundService
         }
     }
 
-    private async Task CreateProductsResume(IEnumerable<string> products, IServiceProvider serviceProvider, StreamWriter fileWriter)
+    private async Task CreateProductsResume(IEnumerable<string> products, StreamWriter fileWriter)
     {
-        var ordersClient = serviceProvider.GetRequiredService<OrdersClient>();
-        var catalogClient = serviceProvider.GetRequiredService<CatalogClient>();
-        var customersClient = serviceProvider.GetRequiredService<CustomersClient>();
+        var ordersClient = _serviceProvider.GetRequiredService<OrdersClient>();
+        var catalogClient = _serviceProvider.GetRequiredService<CatalogClient>();
+        var customersClient = _serviceProvider.GetRequiredService<CustomersClient>();
 
         await fileWriter.WriteLineAsync("Produts Summary;");
         await fileWriter.WriteLineAsync(";");
@@ -167,5 +202,26 @@ public class Worker : BackgroundService
                 fileWriter.WriteLine($"{customer.Name};{totalAmount};");
             }
         }
+    }
+
+    private async Task UpdateDocumentStatus(Guid documentId, DocumentStatus status, string? downloadUrl = null)
+    {
+        var connectionString = _serviceProvider.GetRequiredService<IConfiguration>()
+            .GetConnectionString("Database");
+
+        using var connection = new SqlConnection(connectionString);
+        await connection.OpenAsync();
+
+        var command = new SqlCommand(@"
+            UPDATE Documents 
+            SET Status = @status, DownloadUrl = @downloadUrl
+            WHERE Id = @documentId", connection);
+
+        command.Parameters.AddWithValue("@status", status);
+        command.Parameters.AddWithValue("@documentId", documentId);
+        command.Parameters.AddWithValue("@downloadUrl", downloadUrl ?? SqlString.Null);
+
+        await command.ExecuteNonQueryAsync();
+
     }
 }
