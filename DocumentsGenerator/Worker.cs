@@ -1,21 +1,16 @@
-using Azure.Storage.Blobs;
 using Messaging;
-using Microsoft.Data.SqlClient;
-using System.Data.SqlTypes;
 
 namespace DocumentsGenerator;
 
 public class Worker : BackgroundService
 {
     private readonly ILogger<Worker> _logger;
-    private readonly RequestsMetrics _requestMetrics;
     private readonly IServiceProvider _serviceProvider;
     private readonly MessageReceiver _messageReceiver;
 
-    public Worker(ILogger<Worker> logger, RequestsMetrics requestsMetrics, IServiceProvider serviceProvider, MessageReceiver messageReceiver)
+    public Worker(ILogger<Worker> logger, IServiceProvider serviceProvider, MessageReceiver messageReceiver)
     {
         _logger = logger;
-        _requestMetrics = requestsMetrics;
         _serviceProvider = serviceProvider;
         _messageReceiver = messageReceiver;
     }
@@ -31,18 +26,21 @@ public class Worker : BackgroundService
 
     private async Task ProcessMessage(CreateDocumentMessage request)
     {
+        using var scope = _serviceProvider.CreateScope();
+        var documentsRepository = scope.ServiceProvider.GetRequiredService<DocumentsRepository>();
+
         try
         {
-            await ProcessDocument(request);
+            await ProcessDocument(scope, documentsRepository, request);
         }
         catch
         {
-            await UpdateDocumentStatus(request.DocumentId, DocumentStatus.Failed);
+            await documentsRepository.UpdateDocumentStatus(request.DocumentId, DocumentStatus.Failed);
             throw;
         }
     }
 
-    private async Task ProcessDocument(CreateDocumentMessage request)
+    private async Task ProcessDocument(IServiceScope scope, DocumentsRepository documentsRepository, CreateDocumentMessage request)
     {
         if (request.Errors?.Any(e => "ProcessStart".Equals(e, StringComparison.OrdinalIgnoreCase)) ?? false)
         {
@@ -51,33 +49,20 @@ public class Worker : BackgroundService
 
         if ((!request.Customers?.Any() ?? false) && (!request.Products?.Any() ?? false))
         {
-            await UpdateDocumentStatus(request.DocumentId, DocumentStatus.Completed);
+            await documentsRepository.UpdateDocumentStatus(request.DocumentId, DocumentStatus.Completed);
             _logger.EmptyRequestReceived();
             return;
         }
 
-        using var scope = _serviceProvider.CreateScope();
+        await documentsRepository.UpdateDocumentStatus(request.DocumentId, DocumentStatus.Processing);
+
         var timeProvider = scope.ServiceProvider.GetRequiredService<TimeProvider>();
-
-        await UpdateDocumentStatus(request.DocumentId, DocumentStatus.Processing);
-
         var filePath = $"{timeProvider.GetUtcNow().ToString("yyyy-MM-dd-HH-mm-ss")}_${request.DocumentId}.csv";
         try
         {
             try
             {
-                _logger.CreatingFile(filePath);
-                using var fileWriter = new StreamWriter(new FileStream(filePath, FileMode.Create, FileAccess.Write));
-
-                if (request.Customers?.Any() ?? false)
-                {
-                    await CreateCustomersResume(request.Customers, fileWriter);
-                }
-
-                if (request.Products?.Any() ?? false)
-                {
-                    await CreateProductsResume(request.Products, fileWriter);
-                }
+                await CreateResume(filePath, request, scope);
             }
             catch (Exception ex)
             {
@@ -87,20 +72,9 @@ public class Worker : BackgroundService
 
             try
             {
-                _logger.UploadingToBlob();
-
-                if (request.Errors?.Any(e => "ProcessUpload".Equals(e, StringComparison.OrdinalIgnoreCase)) ?? false)
-                {
-                    throw new Exception("Error when uploading the document.");
-                }
-
-                var blobServiceClient = scope.ServiceProvider.GetRequiredService<BlobServiceClient>();
-                var containerClient = blobServiceClient.GetBlobContainerClient("documents");
-                await containerClient.CreateIfNotExistsAsync();
-                var blobClient = containerClient.GetBlobClient(filePath);
-                await blobClient.UploadAsync(filePath);
-
-                await UpdateDocumentStatus(request.DocumentId, DocumentStatus.Completed, blobClient.Uri.AbsoluteUri);
+                var blobService = scope.ServiceProvider.GetRequiredService<BlobService>();
+                var blobUri = await blobService.UploadBlob(filePath);
+                await documentsRepository.UpdateDocumentStatus(request.DocumentId, DocumentStatus.Completed, blobUri);
             }
             catch (Exception ex)
             {
@@ -122,106 +96,28 @@ public class Worker : BackgroundService
         }
     }
 
-    private async Task CreateCustomersResume(IEnumerable<string> customers, StreamWriter fileWriter)
+    private async Task CreateResume(string filePath, CreateDocumentMessage request, IServiceScope scope)
     {
-        var ordersClient = _serviceProvider.GetRequiredService<OrdersClient>();
-        var catalogClient = _serviceProvider.GetRequiredService<CatalogClient>();
-        var customersClient = _serviceProvider.GetRequiredService<CustomersClient>();
-
-        await fileWriter.WriteLineAsync("Customers Summary;");
-        await fileWriter.WriteLineAsync(";");
-
-        foreach (var customer in customers)
+        try
         {
-            var customerData = await customersClient.GetCustomer(customer);
-            if (customerData is null)
+            _logger.CreatingFile(filePath);
+            var resumeGenerator = scope.ServiceProvider.GetRequiredService<ResumeGenerator>();
+            using var fileWriter = new StreamWriter(new FileStream(filePath, FileMode.Create, FileAccess.Write));
+
+            if (request.Customers?.Any() ?? false)
             {
-                await fileWriter.WriteLineAsync($"{customer};Not Found;");
-                continue;
+                await resumeGenerator.CreateCustomersResume(request.Customers, fileWriter);
             }
 
-            _requestMetrics.IncreaseCustomersMeter(customerData.Name);
-
-            var customerOrders = await ordersClient.GetOrdersByCustomer(customerData.Id);
-            if (customerOrders is null || !customerOrders.Any())
+            if (request.Products?.Any() ?? false)
             {
-                await fileWriter.WriteLineAsync($"{customer};No orders;");
-                continue;
-            }
-
-            await fileWriter.WriteLineAsync($"{customerData.Name};");
-            await fileWriter.WriteLineAsync($"Product;Amount;");
-
-            foreach (var order in customerOrders.GroupBy(o => o.ProductId))
-            {
-                var product = await catalogClient.GetProduct(order.Key);
-                if (product is null)
-                    continue;
-                var totalAmount = order.Sum(o => o.Amount);
-                fileWriter.WriteLine($"{product.Name};{totalAmount};");
+                await resumeGenerator.CreateProductsResume(request.Products, fileWriter);
             }
         }
-    }
-
-    private async Task CreateProductsResume(IEnumerable<string> products, StreamWriter fileWriter)
-    {
-        var ordersClient = _serviceProvider.GetRequiredService<OrdersClient>();
-        var catalogClient = _serviceProvider.GetRequiredService<CatalogClient>();
-        var customersClient = _serviceProvider.GetRequiredService<CustomersClient>();
-
-        await fileWriter.WriteLineAsync("Produts Summary;");
-        await fileWriter.WriteLineAsync(";");
-
-        foreach (var product in products)
+        catch (Exception ex)
         {
-            var productData = await catalogClient.GetProduct(product);
-            if (productData is null)
-            {
-                await fileWriter.WriteLineAsync($"{product};Not Found;");
-                continue;
-            }
-
-            _requestMetrics.IncreaseProductsMeter(productData.Name);
-
-            var productOrders = await ordersClient.GetOrdersByProduct(productData.Id);
-            if (productOrders is null || !productOrders.Any())
-            {
-                await fileWriter.WriteLineAsync($"{product};No orders;");
-                continue;
-            }
-
-            await fileWriter.WriteLineAsync($"{productData.Name};{productData.Description}");
-            await fileWriter.WriteLineAsync($"Customer;Amount;");
-
-            foreach (var order in productOrders.GroupBy(o => o.CustomerId))
-            {
-                var customer = await customersClient.GetCustomer(order.Key);
-                if (customer is null)
-                    continue;
-                var totalAmount = order.Sum(o => o.Amount);
-                fileWriter.WriteLine($"{customer.Name};{totalAmount};");
-            }
+            _logger.ErrorCreatingFile(ex.Message);
+            throw;
         }
-    }
-
-    private async Task UpdateDocumentStatus(Guid documentId, DocumentStatus status, string? downloadUrl = null)
-    {
-        var connectionString = _serviceProvider.GetRequiredService<IConfiguration>()
-            .GetConnectionString("Database");
-
-        using var connection = new SqlConnection(connectionString);
-        await connection.OpenAsync();
-
-        var command = new SqlCommand(@"
-            UPDATE Documents 
-            SET Status = @status, DownloadUrl = @downloadUrl
-            WHERE Id = @documentId", connection);
-
-        command.Parameters.AddWithValue("@status", status);
-        command.Parameters.AddWithValue("@documentId", documentId);
-        command.Parameters.AddWithValue("@downloadUrl", downloadUrl ?? SqlString.Null);
-
-        await command.ExecuteNonQueryAsync();
-
     }
 }

@@ -36,6 +36,9 @@ builder.Services.AddHttpClient<CatalogClient>(opt => opt.BaseAddress = new Uri(b
 builder.Services.AddHttpClient<CustomersClient>(opt => opt.BaseAddress = new Uri(builder.Configuration["CustomersApiUrl"]!));
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddSingleton<RequestsMetrics>();
+builder.Services.AddScoped<BlobService>();
+builder.Services.AddScoped<ResumeGenerator>();
+builder.Services.AddScoped<DocumentsRepository>();
 
 builder.Services.AddScoped(sp =>
 {
