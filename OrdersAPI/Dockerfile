@@ -9,6 +9,8 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["OrdersAPI/OrdersAPI.csproj", "OrdersAPI/"]
+COPY ["Observability.Asp/Observability.Asp.csproj", "Observability.Asp/"]
+COPY ["Observability/Observability.csproj", "Observability/"]
 RUN dotnet restore "./OrdersAPI/./OrdersAPI.csproj"
 COPY . .
 WORKDIR "/src/OrdersAPI"

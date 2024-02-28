@@ -6,49 +6,49 @@ services:
     ports:
       - 5000:8080
     environment:
-      Serilog__WriteTo__1__Args__ServerUrl: "http://serilog:5341"
       ConnectionStrings__Database: "Server=database,1433;Database=master;User Id=SA;Password=<YourStrong@Passw0rd>;TrustServerCertificate=True"
-      MessageQueue__HostName: "rabbitmq"
+      RabbitMqSettings__HostName: "rabbitmq"
+      OpenTelemetrySettings__Endpoint: "http://otel-collector:4317"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
 
   catalog-api:
     build:
       context: .
       dockerfile: CatalogAPI/Dockerfile
-    ports:
-      - 5010:8080
     environment:
-      Serilog__WriteTo__1__Args__ServerUrl: "http://serilog:5341"
       ConnectionStrings__Database: "Server=database,1433;Database=master;User Id=SA;Password=<YourStrong@Passw0rd>;TrustServerCertificate=True"
+      OpenTelemetrySettings__Endpoint: "http://otel-collector:4317"
 
   customers-api:
     build:
       context: .
       dockerfile: CustomersAPI/Dockerfile
-    ports:
-      - 5020:8080
     environment:
-      Serilog__WriteTo__1__Args__ServerUrl: "http://serilog:5341"
       ConnectionStrings__Database: "Server=database,1433;Database=master;User Id=SA;Password=<YourStrong@Passw0rd>;TrustServerCertificate=True"
+      OpenTelemetrySettings__Endpoint: "http://otel-collector:4317"
 
   orders-api:
     build:
       context: .
       dockerfile: OrdersAPI/Dockerfile
-    ports:
-      - 5030:8080
     environment:
-      Serilog__WriteTo__1__Args__ServerUrl: "http://serilog:5341"
       ConnectionStrings__Database: "Server=database,1433;Database=master;User Id=SA;Password=<YourStrong@Passw0rd>;TrustServerCertificate=True"
+      OpenTelemetrySettings__Endpoint: "http://otel-collector:4317"
 
   documents-generator:
     build:
       context: .
       dockerfile: DocumentsGenerator/Dockerfile
     environment:
-      Serilog__WriteTo__1__Args__ServerUrl: "http://serilog:5341"
       ConnectionStrings__Database: "Server=database,1433;Database=master;User Id=SA;Password=<YourStrong@Passw0rd>;TrustServerCertificate=True"
-      CustomersApiUrl: "http://customers-api:5020"
-      CatalogApiUrl: "http://catalog-api:5010"
-      OrdersApiUrl: "http://orders-api:5030"
-      MessageQueue__HostName: "rabbitmq"
+      CustomersApiUrl: "http://customers-api:8080"
+      CatalogApiUrl: "http://catalog-api:8080"
+      OrdersApiUrl: "http://orders-api:8080"
+      RabbitMqSettings__HostName: "rabbitmq"
       BlobStorageConnectionString: "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://azurite:10000/devstoreaccount1;"
+      OpenTelemetrySettings__Endpoint: "http://otel-collector:4317"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy

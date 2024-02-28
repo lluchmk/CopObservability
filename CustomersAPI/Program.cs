@@ -1,17 +1,9 @@
 using CustomersAPI;
 using Microsoft.EntityFrameworkCore;
-using Observability;
-using OpenTelemetry.Metrics;
-using OpenTelemetry.Trace;
+using Observability.Asp;
 
 var builder = WebApplication.CreateBuilder(args);
-builder.AddObservability(configureMetrics: builder =>
-{
-    builder
-        .AddAspNetCoreInstrumentation()
-        .AddMeter("Microsoft.AspNetCore.Hosting")
-        .AddMeter("Microsoft.AspNetCore.Server.Kestrel");
-});
+builder.AddAspObservability();
 
 builder.Services.AddDbContext<CustomersContext>(opt =>
 {

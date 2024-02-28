@@ -1,7 +1,4 @@
-﻿using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Diagnostics;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -9,7 +6,6 @@ using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
-using System.Diagnostics;
 
 namespace Observability;
 
@@ -53,8 +49,7 @@ public static class ObservabilityExtensions
                     .CreateDefault()
                     .AddService(serviceName))
                     .AddTelemetrySdk())
-                .AddHttpClientInstrumentation()
-                .AddPrometheusExporter();
+                .AddHttpClientInstrumentation();
 
             if (configureMetrics != null)
             {
@@ -69,10 +64,6 @@ public static class ObservabilityExtensions
                         .CreateDefault()
                         .AddService(serviceName))
                         .AddTelemetrySdk())
-                .AddAspNetCoreInstrumentation(options =>
-                {
-                    options.Filter = (req) => !req.Request.Path.ToUriComponent().Equals("/metrics", StringComparison.OrdinalIgnoreCase);
-                })
                 .AddHttpClientInstrumentation(opt =>
                 {
                     opt.RecordException = true;
@@ -85,8 +76,7 @@ public static class ObservabilityExtensions
                 .AddOtlpExporter(otlpOptions =>
                 {
                     otlpOptions.Endpoint = openTelemetrySettings!.Endpoint;
-                })
-                .AddConsoleExporter();
+                });
 
             if (configureTracing != null)
             {
@@ -95,24 +85,5 @@ public static class ObservabilityExtensions
         });
 
         return services;
-    }
-
-    public static IApplicationBuilder UseTracingExceptionHandler(this IApplicationBuilder app)
-    {
-        app.UseExceptionHandler(builder =>
-        {
-            builder.Run(async context =>
-            {
-                var exception = context.Features.Get<IExceptionHandlerFeature>()!.Error;
-                var activity = Activity.Current;
-
-                activity?.RecordException(exception);
-                activity?.SetStatus(Status.Error.WithDescription(exception.Message));
-
-                await Results.Problem().ExecuteAsync(context);
-            });
-        });
-
-        return app;
     }
 }

@@ -1,7 +1,6 @@
 using Azure.Storage.Blobs;
 using DocumentsGenerator;
 using Messaging;
-using Microsoft.AspNetCore.Builder;
 using Observability;
 using OpenTelemetry.Metrics;
 

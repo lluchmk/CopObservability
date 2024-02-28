@@ -10,6 +10,9 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["DocumentsAPI/DocumentsAPI.csproj", "DocumentsAPI/"]
+COPY ["Messaging/Messaging.csproj", "Messaging/"]
+COPY ["Observability.Asp/Observability.Asp.csproj", "Observability.Asp/"]
+COPY ["Observability/Observability.csproj", "Observability/"]
 RUN dotnet restore "./DocumentsAPI/./DocumentsAPI.csproj"
 COPY . .
 WORKDIR "/src/DocumentsAPI"

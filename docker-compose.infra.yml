@@ -19,6 +19,11 @@ services:
       - 15672:15672 # Management console
       - 5672:5672   # AMQP
       - 15692:15692 # Prometheus metrics
+    healthcheck:
+      test: [ "CMD", "rabbitmq-diagnostics", "check_port_connectivity"]
+      interval: 5s
+      timeout: 15s
+      retries: 5
 
   azurite:
     image: mcr.microsoft.com/azure-storage/azurite:3.29.0
@@ -30,3 +35,4 @@ services:
 volumes:
   database-data:
   azurite-blobs:
+  

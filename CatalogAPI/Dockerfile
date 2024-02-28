@@ -10,6 +10,8 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["CatalogAPI/CatalogAPI.csproj", "CatalogAPI/"]
+COPY ["Observability.Asp/Observability.Asp.csproj", "Observability.Asp/"]
+COPY ["Observability/Observability.csproj", "Observability/"]
 RUN dotnet restore "./CatalogAPI/./CatalogAPI.csproj"
 COPY . .
 WORKDIR "/src/CatalogAPI"

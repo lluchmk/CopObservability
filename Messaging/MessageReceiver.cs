@@ -51,7 +51,7 @@ public class MessageReceiver : IDisposable
 
     private async Task ReceiveMessage<T>(BasicDeliverEventArgs eventArgs, Func<T, Task> processMessage)
     {
-        // Extract the PropagationContext of the upstrea parent from the message headers.
+        // Extract the PropagationContext of the upstream parent from the message headers.
         var parentContext = Propagator.Extract(default, eventArgs.BasicProperties, ExtractTraceContextFromBasicProperties);
         Baggage.Current = parentContext.Baggage;
 

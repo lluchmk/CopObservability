@@ -21,7 +21,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		docker.http = docker.http
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Messaging", "Messaging\Messaging.csproj", "{AEF412E2-F8E1-444D-8924-A4EC3130D02B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Messaging", "Messaging\Messaging.csproj", "{AEF412E2-F8E1-444D-8924-A4EC3130D02B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Observability.Asp", "Observability.Asp\Observability.Asp.csproj", "{252528EE-FA99-4196-B1F9-7975B0A56E7A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -57,6 +59,10 @@ Global
 		{AEF412E2-F8E1-444D-8924-A4EC3130D02B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AEF412E2-F8E1-444D-8924-A4EC3130D02B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AEF412E2-F8E1-444D-8924-A4EC3130D02B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{252528EE-FA99-4196-B1F9-7975B0A56E7A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{252528EE-FA99-4196-B1F9-7975B0A56E7A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{252528EE-FA99-4196-B1F9-7975B0A56E7A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{252528EE-FA99-4196-B1F9-7975B0A56E7A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,16 +1,9 @@
 using Microsoft.EntityFrameworkCore;
-using Observability;
-using OpenTelemetry.Metrics;
+using Observability.Asp;
 using OrdersAPI;
 
 var builder = WebApplication.CreateBuilder(args);
-builder.AddObservability(configureMetrics: builder =>
-{
-    builder
-        .AddAspNetCoreInstrumentation()
-        .AddMeter("Microsoft.AspNetCore.Hosting")
-        .AddMeter("Microsoft.AspNetCore.Server.Kestrel");
-});
+builder.AddAspObservability();
 
 builder.Services.AddDbContext<OrdersContext>(opt =>
 {

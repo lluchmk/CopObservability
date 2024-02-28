@@ -2,18 +2,10 @@ using CustomersAPI;
 using DocumentsAPI;
 using Messaging;
 using Microsoft.EntityFrameworkCore;
-using Observability;
-using OpenTelemetry.Metrics;
-using OpenTelemetry.Trace;
+using Observability.Asp;
 
 var builder = WebApplication.CreateBuilder(args);
-builder.AddObservability(configureMetrics: builder =>
-{
-    builder
-        .AddAspNetCoreInstrumentation()
-        .AddMeter("Microsoft.AspNetCore.Hosting")
-        .AddMeter("Microsoft.AspNetCore.Server.Kestrel");
-},
+builder.AddAspObservability(
 configureTracing: builder =>
 {
     builder.AddSource(nameof(MessageSender));

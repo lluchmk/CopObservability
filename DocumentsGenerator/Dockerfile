@@ -8,6 +8,8 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["DocumentsGenerator/DocumentsGenerator.csproj", "DocumentsGenerator/"]
+COPY ["Messaging/Messaging.csproj", "Messaging/"]
+COPY ["Observability/Observability.csproj", "Observability/"]
 RUN dotnet restore "./DocumentsGenerator/./DocumentsGenerator.csproj"
 COPY . .
 WORKDIR "/src/DocumentsGenerator"
