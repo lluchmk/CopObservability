@@ -7,11 +7,11 @@ WORKDIR /app
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["DocumentsGenerator/DocumentsGenerator.csproj", "DocumentsGenerator/"]
-COPY ["Messaging/Messaging.csproj", "Messaging/"]
-COPY ["Observability/Observability.csproj", "Observability/"]
+COPY ["src/DocumentsGenerator/DocumentsGenerator.csproj", "DocumentsGenerator/"]
+COPY ["src/Messaging/Messaging.csproj", "Messaging/"]
+COPY ["src/Observability/Observability.csproj", "Observability/"]
 RUN dotnet restore "./DocumentsGenerator/./DocumentsGenerator.csproj"
-COPY . .
+COPY src/ .
 WORKDIR "/src/DocumentsGenerator"
 RUN dotnet build "./DocumentsGenerator.csproj" -c $BUILD_CONFIGURATION -o /app/build
 

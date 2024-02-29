@@ -2,7 +2,7 @@ services:
   migrations-runner:
     build:
       context: .
-      dockerfile: MigrationsRunner/Dockerfile
+      dockerfile: src/MigrationsRunner/Dockerfile
     environment:
       ConnectionStrings__Database: "Server=database,1433;Database=master;User Id=SA;Password=<YourStrong@Passw0rd>;TrustServerCertificate=True"
       OpenTelemetrySettings__Endpoint: "http://otel-collector:4317"
@@ -13,7 +13,7 @@ services:
   documents-api:
     build:
       context: .
-      dockerfile: DocumentsAPI/Dockerfile
+      dockerfile: src/DocumentsAPI/Dockerfile
     ports:
       - 5000:8080
     environment:
@@ -29,7 +29,7 @@ services:
   catalog-api:
     build:
       context: .
-      dockerfile: CatalogAPI/Dockerfile
+      dockerfile: src/CatalogAPI/Dockerfile
     environment:
       ConnectionStrings__Database: "Server=database,1433;Database=master;User Id=SA;Password=<YourStrong@Passw0rd>;TrustServerCertificate=True"
       OpenTelemetrySettings__Endpoint: "http://otel-collector:4317"
@@ -40,7 +40,7 @@ services:
   customers-api:
     build:
       context: .
-      dockerfile: CustomersAPI/Dockerfile
+      dockerfile: src/CustomersAPI/Dockerfile
     environment:
       ConnectionStrings__Database: "Server=database,1433;Database=master;User Id=SA;Password=<YourStrong@Passw0rd>;TrustServerCertificate=True"
       OpenTelemetrySettings__Endpoint: "http://otel-collector:4317"
@@ -51,7 +51,7 @@ services:
   orders-api:
     build:
       context: .
-      dockerfile: OrdersAPI/Dockerfile
+      dockerfile: src/OrdersAPI/Dockerfile
     environment:
       ConnectionStrings__Database: "Server=database,1433;Database=master;User Id=SA;Password=<YourStrong@Passw0rd>;TrustServerCertificate=True"
       OpenTelemetrySettings__Endpoint: "http://otel-collector:4317"
@@ -62,7 +62,7 @@ services:
   documents-generator:
     build:
       context: .
-      dockerfile: DocumentsGenerator/Dockerfile
+      dockerfile: src/DocumentsGenerator/Dockerfile
     environment:
       ConnectionStrings__Database: "Server=database,1433;Database=master;User Id=SA;Password=<YourStrong@Passw0rd>;TrustServerCertificate=True"
       CustomersApiUrl: "http://customers-api:8080/customers/"

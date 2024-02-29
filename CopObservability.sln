@@ -3,17 +3,17 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CatalogAPI", "CatalogAPI\CatalogAPI.csproj", "{44516314-0231-4ADA-936D-68169D6F55AF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CatalogAPI", "src\CatalogAPI\CatalogAPI.csproj", "{44516314-0231-4ADA-936D-68169D6F55AF}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CustomersAPI", "CustomersAPI\CustomersAPI.csproj", "{18749443-7EBD-4FA0-BFEE-45234929C56F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CustomersAPI", "src\CustomersAPI\CustomersAPI.csproj", "{18749443-7EBD-4FA0-BFEE-45234929C56F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DocumentsAPI", "DocumentsAPI\DocumentsAPI.csproj", "{E0C32F33-37BA-43A6-A721-0D1609231A7F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DocumentsAPI", "src\DocumentsAPI\DocumentsAPI.csproj", "{E0C32F33-37BA-43A6-A721-0D1609231A7F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DocumentsGenerator", "DocumentsGenerator\DocumentsGenerator.csproj", "{3911DFCD-8B39-4B67-93EB-2B8F792483CF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DocumentsGenerator", "src\DocumentsGenerator\DocumentsGenerator.csproj", "{3911DFCD-8B39-4B67-93EB-2B8F792483CF}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Observability", "Observability\Observability.csproj", "{9C4B24AD-50A2-4177-9300-3D5CA32A81F0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Observability", "src\Observability\Observability.csproj", "{9C4B24AD-50A2-4177-9300-3D5CA32A81F0}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OrdersAPI", "OrdersAPI\OrdersAPI.csproj", "{FFB459E9-40E4-4EE5-BF64-46718F852BE7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OrdersAPI", "src\OrdersAPI\OrdersAPI.csproj", "{FFB459E9-40E4-4EE5-BF64-46718F852BE7}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{C9E2F02F-D82B-4358-88AD-7BCB6654AB15}"
 	ProjectSection(SolutionItems) = preProject
@@ -22,11 +22,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		docker.http = docker.http
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Messaging", "Messaging\Messaging.csproj", "{AEF412E2-F8E1-444D-8924-A4EC3130D02B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Messaging", "src\Messaging\Messaging.csproj", "{AEF412E2-F8E1-444D-8924-A4EC3130D02B}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Observability.Asp", "Observability.Asp\Observability.Asp.csproj", "{252528EE-FA99-4196-B1F9-7975B0A56E7A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Observability.Asp", "src\Observability.Asp\Observability.Asp.csproj", "{252528EE-FA99-4196-B1F9-7975B0A56E7A}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MigrationsRunner", "MigrationsRunner\MigrationsRunner.csproj", "{54698AC0-E6D5-4C63-B18A-1D67495B5C62}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MigrationsRunner", "src\MigrationsRunner\MigrationsRunner.csproj", "{54698AC0-E6D5-4C63-B18A-1D67495B5C62}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

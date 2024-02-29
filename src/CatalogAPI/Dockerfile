@@ -9,11 +9,11 @@ EXPOSE 8081
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["CatalogAPI/CatalogAPI.csproj", "CatalogAPI/"]
-COPY ["Observability.Asp/Observability.Asp.csproj", "Observability.Asp/"]
-COPY ["Observability/Observability.csproj", "Observability/"]
+COPY ["src/CatalogAPI/CatalogAPI.csproj", "CatalogAPI/"]
+COPY ["src/Observability.Asp/Observability.Asp.csproj", "Observability.Asp/"]
+COPY ["src/Observability/Observability.csproj", "Observability/"]
 RUN dotnet restore "./CatalogAPI/./CatalogAPI.csproj"
-COPY . .
+COPY src/ .
 WORKDIR "/src/CatalogAPI"
 RUN dotnet build "./CatalogAPI.csproj" -c $BUILD_CONFIGURATION -o /app/build
 

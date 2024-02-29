@@ -7,10 +7,10 @@ WORKDIR /app
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["MigrationsRunner/MigrationsRunner.csproj", "MigrationsRunner/"]
-COPY ["Observability/Observability.csproj", "Observability/"]
+COPY ["src/MigrationsRunner/MigrationsRunner.csproj", "MigrationsRunner/"]
+COPY ["src/Observability/Observability.csproj", "Observability/"]
 RUN dotnet restore "./MigrationsRunner/./MigrationsRunner.csproj"
-COPY . .
+COPY src/ .
 WORKDIR "/src/MigrationsRunner"
 RUN dotnet build "./MigrationsRunner.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
@@ -21,5 +21,5 @@ RUN dotnet publish "./MigrationsRunner.csproj" -c $BUILD_CONFIGURATION -o /app/p
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-COPY ["MigrationsRunner/scripts", "scripts"]
+COPY ["src/MigrationsRunner/scripts", "scripts"]
 ENTRYPOINT ["dotnet", "MigrationsRunner.dll"]

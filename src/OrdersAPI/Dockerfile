@@ -8,11 +8,11 @@ EXPOSE 8080
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["OrdersAPI/OrdersAPI.csproj", "OrdersAPI/"]
-COPY ["Observability.Asp/Observability.Asp.csproj", "Observability.Asp/"]
-COPY ["Observability/Observability.csproj", "Observability/"]
+COPY ["src/OrdersAPI/OrdersAPI.csproj", "OrdersAPI/"]
+COPY ["src/Observability.Asp/Observability.Asp.csproj", "Observability.Asp/"]
+COPY ["src/Observability/Observability.csproj", "Observability/"]
 RUN dotnet restore "./OrdersAPI/./OrdersAPI.csproj"
-COPY . .
+COPY src/ .
 WORKDIR "/src/OrdersAPI"
 RUN dotnet build "./OrdersAPI.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
