@@ -18,12 +18,15 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{C9E2F02F-D82B-4358-88AD-7BCB6654AB15}"
 	ProjectSection(SolutionItems) = preProject
 		.http = .http
+		CreateMigrations.ps1 = CreateMigrations.ps1
 		docker.http = docker.http
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Messaging", "Messaging\Messaging.csproj", "{AEF412E2-F8E1-444D-8924-A4EC3130D02B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Observability.Asp", "Observability.Asp\Observability.Asp.csproj", "{252528EE-FA99-4196-B1F9-7975B0A56E7A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Observability.Asp", "Observability.Asp\Observability.Asp.csproj", "{252528EE-FA99-4196-B1F9-7975B0A56E7A}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MigrationsRunner", "MigrationsRunner\MigrationsRunner.csproj", "{54698AC0-E6D5-4C63-B18A-1D67495B5C62}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -63,6 +66,10 @@ Global
 		{252528EE-FA99-4196-B1F9-7975B0A56E7A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{252528EE-FA99-4196-B1F9-7975B0A56E7A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{252528EE-FA99-4196-B1F9-7975B0A56E7A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{54698AC0-E6D5-4C63-B18A-1D67495B5C62}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{54698AC0-E6D5-4C63-B18A-1D67495B5C62}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{54698AC0-E6D5-4C63-B18A-1D67495B5C62}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{54698AC0-E6D5-4C63-B18A-1D67495B5C62}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

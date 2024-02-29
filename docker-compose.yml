@@ -1,4 +1,15 @@
 services:
+  migrations-runner:
+    build:
+      context: .
+      dockerfile: MigrationsRunner/Dockerfile
+    environment:
+      ConnectionStrings__Database: "Server=database,1433;Database=master;User Id=SA;Password=<YourStrong@Passw0rd>;TrustServerCertificate=True"
+      OpenTelemetrySettings__Endpoint: "http://otel-collector:4317"
+    depends_on:
+      database:
+        condition: service_healthy
+
   documents-api:
     build:
       context: .
@@ -12,6 +23,8 @@ services:
     depends_on:
       rabbitmq:
         condition: service_healthy
+      migrations-runner:
+        condition: service_completed_successfully
 
   catalog-api:
     build:
@@ -20,6 +33,9 @@ services:
     environment:
       ConnectionStrings__Database: "Server=database,1433;Database=master;User Id=SA;Password=<YourStrong@Passw0rd>;TrustServerCertificate=True"
       OpenTelemetrySettings__Endpoint: "http://otel-collector:4317"
+    depends_on:
+      migrations-runner:
+        condition: service_completed_successfully
 
   customers-api:
     build:
@@ -28,6 +44,9 @@ services:
     environment:
       ConnectionStrings__Database: "Server=database,1433;Database=master;User Id=SA;Password=<YourStrong@Passw0rd>;TrustServerCertificate=True"
       OpenTelemetrySettings__Endpoint: "http://otel-collector:4317"
+    depends_on:
+      migrations-runner:
+        condition: service_completed_successfully
 
   orders-api:
     build:
@@ -36,6 +55,9 @@ services:
     environment:
       ConnectionStrings__Database: "Server=database,1433;Database=master;User Id=SA;Password=<YourStrong@Passw0rd>;TrustServerCertificate=True"
       OpenTelemetrySettings__Endpoint: "http://otel-collector:4317"
+    depends_on:
+      migrations-runner:
+        condition: service_completed_successfully
 
   documents-generator:
     build:
@@ -43,12 +65,18 @@ services:
       dockerfile: DocumentsGenerator/Dockerfile
     environment:
       ConnectionStrings__Database: "Server=database,1433;Database=master;User Id=SA;Password=<YourStrong@Passw0rd>;TrustServerCertificate=True"
-      CustomersApiUrl: "http://customers-api:8080"
-      CatalogApiUrl: "http://catalog-api:8080"
-      OrdersApiUrl: "http://orders-api:8080"
+      CustomersApiUrl: "http://customers-api:8080/customers/"
+      CatalogApiUrl: "http://catalog-api:8080/products/"
+      OrdersApiUrl: "http://orders-api:8080/orders/"
       RabbitMqSettings__HostName: "rabbitmq"
       BlobStorageConnectionString: "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://azurite:10000/devstoreaccount1;"
       OpenTelemetrySettings__Endpoint: "http://otel-collector:4317"
     depends_on:
       rabbitmq:
         condition: service_healthy
+      migrations-runner:
+        condition: service_completed_successfully
+    
+  prometheus:
+    volumes:
+      - ./Infrastructure/Prometheus/prometheus.yml:/prometheus/prometheus.yml

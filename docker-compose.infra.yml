@@ -9,6 +9,10 @@ services:
     environment:
       - ACCEPT_EULA=Y
       - MSSQL_SA_PASSWORD=<YourStrong@Passw0rd>
+    healthcheck:
+      test: /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "<YourStrong@Passw0rd>" -Q "SELECT 1" -b -o /dev/null
+      interval: 1s
+      retries: 20
 
   rabbitmq:
     #image: rabbitmq:3.12.11-management # We're using cutom image to enable prometheus

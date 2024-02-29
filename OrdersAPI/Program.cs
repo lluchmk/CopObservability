@@ -14,12 +14,6 @@ var app = builder.Build();
 
 app.UseTracingExceptionHandler();
 
-using (var scope = app.Services.CreateScope())
-{
-    var dbContext = scope.ServiceProvider.GetRequiredService<OrdersContext>();
-    await dbContext.Database.MigrateAsync();
-}
-
 app.MapGet("/orders", async (OrdersContext dbContext, ILogger<Program> logger) =>
 {
     logger.AllOrdersRequested();

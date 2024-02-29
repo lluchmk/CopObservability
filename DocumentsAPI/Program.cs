@@ -25,12 +25,6 @@ var app = builder.Build();
 
 app.UseTracingExceptionHandler();
 
-using (var scope = app.Services.CreateScope())
-{
-    var dbContext = scope.ServiceProvider.GetRequiredService<DocumentContext>();
-    await dbContext.Database.MigrateAsync();
-}
-
 app.MapPost("/", CreateDocument);
 
 app.MapGet("/{documentId:Guid}", async (DocumentContext context, ILogger<Program> logger, Guid documentId) =>
